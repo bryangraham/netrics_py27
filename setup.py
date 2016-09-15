@@ -9,7 +9,7 @@ setup(name='netrics',
       description='Econometric methods for the analysis of networks',
       long_description='Python implementations of Graham (2014)',
       classifiers=[
-        'Development Status :: 2 - Pre Alpha',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering :: Mathematics',

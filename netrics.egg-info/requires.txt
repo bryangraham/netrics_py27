@@ -1,0 +1,6 @@
+numpy
+scipy
+pandas
+numba
+numexpr
+itertools

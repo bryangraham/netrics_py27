@@ -1,0 +1,16 @@
+Metadata-Version: 1.1
+Name: netrics
+Version: 0.0.1
+Summary: Econometric methods for the analysis of networks
+Home-page: http://github.com/bryangraham/netrics
+Author: Bryan S. Graham
+Author-email: bgraham@econ.berkeley.edu
+License: MIT
+Description: Python implementations of Graham (2014)
+Keywords: Tetrad Logit,Networks,Degree heterogeneity
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Classifier: Intended Audience :: Science/Research
