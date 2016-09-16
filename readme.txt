@@ -15,21 +15,48 @@ code in your research.
 
 A simple example script to get started is::
 
-	>>>> # Append location of netrics module root directory to systems path
-	>>>> # NOTE: Only required if netrics not "permanently" installed
+	>>>> # Import numpy in order to correctly read test data
+	>>>> import numpy as np
+
+	>>>> # Import urllib in order to download test data from Github repo
+	>>>> import urllib
+
+	>>>> # Append location of netrics module base directory to system path
+	>>>> # NOTE: only required if permanent install not made 
+	>>>> # NOTE: edit path to location on netrics package on local machine
 	>>>> import sys
 	>>>> sys.path.append('/Users/bgraham/Dropbox/Sites/software/netrics/')
 
-	>>>> # Load netrics package
+	>>>> # Load netrics module
 	>>>> import netrics as netrics
 	
-	>>>> # View help file
-	>>>> help(netrics.tetrad_logit)
-	
-	>>>> # Fit link formation model
-	>>>> # See help for how to construct D and W in practice
+	>>>> # Download Nyakatoke test dataset from GitHub
+	>>>> download =  '/Users/bgraham/Dropbox/' # Edit to location on your machine   
+	>>>> url = 'https://github.com/bryangraham/netrics/blob/master/Notebooks/Nyakatoke_Example.npz?raw=true'
+	>>>> urllib.urlretrieve(url, download + "Nyakatoke_Example.npz")
+
+	>>>> # Open dataset
+	>>>> NyakatokeTestDataset = np.load(download + "Nyakatoke_Example.npz")
+
+	>>>> # Extract adjacency matrix
+	>>>> D = NyakatokeTestDataset['D']
+
+	>>>> # Initialize list of dyad-specific covariates as elements
+	>>>> # W = [W0, W1, W2,...WK-1]
+	>>>> W = []
+
+	>>>> # Initialize list with covariate labels
+	>>>> cov_names = []
+
+	>>>> # Construct list of regressor matrices and corresponding variable names
+	>>>> for matrix in NyakatokeTestDataset.files:
+	>>>>     if matrix != 'D':
+	>>>>         W.append(NyakatokeTestDataset[matrix])
+	>>>>         cov_names.append(matrix)   
+
+	>>>> # Apply tetrad logit procedure to dataset	
 	>>>> [beta_TL, vcov_beta_TL, tetrad_frac_TL, success] = \
-            netrics.tetrad_logit(D, W, dtcon=None, silent=False, W_names=cov_names)
+    	 	 netrics.tetrad_logit(D, W, dtcon=None, silent=False, W_names=cov_names)
 
 
 CODE CITATION

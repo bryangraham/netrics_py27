@@ -5,9 +5,9 @@ def readme():
         return f.read()
 
 setup(name='netrics',
-      version='0.0.1',
-      description='Econometric methods for the analysis of networks',
-      long_description='Python implementations of Graham (2014)',
+      version='0.0.2',
+      description='Econometric methods for the analysis of networks.',
+      long_description=readme(),
       classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
