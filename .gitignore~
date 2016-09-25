@@ -5,10 +5,10 @@
 /dist/
 
 # Python egg metadata, regenerated from source files by setuptools.
-*.egg-info
+**/*.egg-info/
 
 # Ignore folder
-/Notebooks/.ipynb_checkpoints/
+**/Notebooks/.ipynb_checkpoints/
 
 # OS generate files
 .DS_Store
