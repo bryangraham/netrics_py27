@@ -2,16 +2,17 @@
 *.pyc
 
 # Setuptools distribution folder.
-/dist/
+/dist/*
 
 # Python egg metadata, regenerated from source files by setuptools.
-**/*.egg-info/
+/netrics.egg-info/*
 
 # Ignore folder
-**/Notebooks/.ipynb_checkpoints/
+/Notebooks/.ipynb_checkpoints/*
 
 # OS generate files
 .DS_Store
 .DS_Store?
 ._*
-*~
+.*~
+
