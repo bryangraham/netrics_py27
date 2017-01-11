@@ -69,9 +69,8 @@ def tetrad_logit(D, W, dtcon=None, silent=False, W_names=None):
     # organize data for input into logit maximizer
     [S, W_tilde, tetrad_frac_TL, proj_tetrads_dict] = organize_data_tetrad_logit(D, W, dtcon)
     
-    # NOTES:  S  is a 6 (N choose 4) x 1 vector of -1, 0, 1 according to the configuration of the tetrad. The
-    #         6 (N choose 4) elements correspond to the six dyads in each of the N choose 4 tetrads.
-    #         W_tilde is a 6 (N choose 4) x K matrix of regressors corresponding to S. This is as described in the 
+    # NOTES:  S  is a 3 (N choose 4) x 1 vector of -1, 0, 1 according to the configuration of the tetrad. 
+    #         W_tilde is a 3 (N choose 4) x K matrix of regressors corresponding to S. This is as described in the 
     #         paper.
     
     # Drop all rows where S = 0 (i.e., no identifying content & not part of the criterion function)
@@ -99,11 +98,11 @@ def tetrad_logit(D, W, dtcon=None, silent=False, W_names=None):
     # ------------------------------------- #
    
     # place full "score" vector, including non-contributing tetrads, into
-    # a 6 (N choose 4) x 1 two dimensional scipy sparse matrix
+    # a 3 (N choose 4) x 1 two dimensional scipy sparse matrix
     score = sp.sparse.coo_matrix((np.ravel(Y_trim - (1 + np.exp(-np.dot(W_trim,beta_TL)))**-1),\
-                                 (g[0],g[1])), shape = (6*Nchoose4, 1), dtype='float64').tocsr()
+                                 (g[0],g[1])), shape = (3*Nchoose4, 1), dtype='float64').tocsr()
     
-    # Compute n x K matrix containing all six components of each dyad's contribution to the
+    # Compute n x K matrix containing all three components of each dyad's contribution to the
     # projection of the "score". These correspond to the six non-redudant permutation of ij, kl
     # which enter the criterion function as described in Graham (2014, NBER). Note the use of
     # list comprehensions in what follows

@@ -166,9 +166,9 @@ def organize_data_tetrad_logit(D, W, dtcon=None):
                  
     OUTPUTS:
     --------
-    S                 : 6 (N choose 4) x 1 vector with elements of -1, 0 or 1 depending on the how the
+    S                 : 3 (N choose 4) x 1 vector with elements of -1, 0 or 1 depending on the how the
                         tetrad is wired.
-    W_tilde           : 6 (N choose 4) x K regressor matrix
+    W_tilde           : 3 (N choose 4) x K regressor matrix
     tetrad_frac_TL    : Fraction of tetrads that contribute to Tetrad Logit criterion function
     proj_tetrads_dict : Dictionary with dyads as keys and a numpy array of tetrad indices with non-zero 
                         contributions to each dyad's "score projection" as items.
@@ -195,7 +195,7 @@ def organize_data_tetrad_logit(D, W, dtcon=None):
         """
         This function computes W_tilde(ij,kl) = W(ij) + W(kl) - (W(ik) + W(jl)).
         It is fully vectorized and uses the numexpr module in order to speed up the compution of all
-        6 (N choose 4) needed values of W_tilde.
+        3 (N choose 4) needed values of W_tilde.
         """
         return ne.evaluate('W_ij + W_kl - (W_ik + W_jl)')    
     
@@ -220,26 +220,18 @@ def organize_data_tetrad_logit(D, W, dtcon=None):
     # - Construct "outcome" vector - #
     # ------------------------------ # 
    
-    # D(ij)D(kl)(1-D(ik))(1-D(jl)) - (1- D(ij))(1-D(kl))D(ik)D(jl)
-    S1a = calc_S(D[dtcon[0][:,0]], D[dtcon[0][:,5]], D[dtcon[0][:,1]], D[dtcon[0][:,4]])
+    # S(ij,kl) = D(ij)D(kl)(1-D(ik))(1-D(jl)) - (1- D(ij))(1-D(kl))D(ik)D(jl)
+    S1 = calc_S(D[dtcon[0][:,0]], D[dtcon[0][:,5]], D[dtcon[0][:,1]], D[dtcon[0][:,4]])
     
-    # D(ij)D(kl)(1-D(il))(1-D(jk)) - (1- D(ij))(1-D(kl))D(il)D(jk)
-    S1b = calc_S(D[dtcon[0][:,0]], D[dtcon[0][:,5]], D[dtcon[0][:,2]], D[dtcon[0][:,3]])
+    # S(ij,lk) = D(ij)D(kl)(1-D(il))(1-D(jk)) - (1- D(ij))(1-D(kl))D(il)D(jk)
+    S2 = calc_S(D[dtcon[0][:,0]], D[dtcon[0][:,5]], D[dtcon[0][:,2]], D[dtcon[0][:,3]])
     
-    # D(ik)D(jl)(1-D(ij))(1-D(kl)) - (1- D(ik))(1-D(jl))D(ij)D(kl)
-    S2a = calc_S(D[dtcon[0][:,1]], D[dtcon[0][:,4]], D[dtcon[0][:,0]], D[dtcon[0][:,5]])
+    # S(ik,lj) = D(ik)D(jl)(1-D(il))(1-D(jk)) - (1- D(ik))(1-D(jl))D(il)D(jk)
+    S3 = calc_S(D[dtcon[0][:,1]], D[dtcon[0][:,4]], D[dtcon[0][:,2]], D[dtcon[0][:,3]])
     
-    # D(ik)D(jl)(1-D(il))(1-D(jk)) - (1- D(ik))(1-D(jl))D(il)D(jk)
-    S2b = calc_S(D[dtcon[0][:,1]], D[dtcon[0][:,4]], D[dtcon[0][:,2]], D[dtcon[0][:,3]])
     
-    # D(il)D(jk)(1-D(ij))(1-D(kl)) - (1- D(il))(1-D(jk))D(ij)D(kl)  
-    S3a = calc_S(D[dtcon[0][:,2]], D[dtcon[0][:,3]], D[dtcon[0][:,0]], D[dtcon[0][:,5]])
-    
-    # D(il)D(jk)(1-D(ik))(1-D(jl)) - (1- D(il))(1-D(jk))D(ik)D(jl)
-    S3b = calc_S(D[dtcon[0][:,2]], D[dtcon[0][:,3]], D[dtcon[0][:,1]], D[dtcon[0][:,4]])
-    
-    # concatenate S vectors into N choose 4 x 6 2d numpy array
-    S = np.column_stack((S1a, S1b, S2a, S2b, S3a, S3b))
+    # concatenate S vectors into N choose 4 x 3 2d numpy array
+    S = np.column_stack((S1, S2, S3))
     
     # find set of indices for tetrads which contribute to the criterion function
     # (i.e., look for tetrads where at least one S permutations calculated above is non-zero)
@@ -263,9 +255,9 @@ def organize_data_tetrad_logit(D, W, dtcon=None):
     proj_tetrads_dict = {dyad: np.asarray(list(tetrads & tetrads_to_keep), dtype='int') \
                          for dyad, tetrads in dtcon[1].iteritems()}
     
-    # We add 5 additional indices for each tetrad to account for the six dyad permutations appearing
-    # in each tetrad. This list comprehension is quick.
-    proj_tetrads_dict = {dyad: np.ravel([tetrads + k*Nchoose4 for k in [0,1,2,3,4,5]]) \
+    # We add 2 additional indices for each tetrad to account for the three dyad permutations appearing
+    # in each tetrad contribution. This list comprehension is quick.
+    proj_tetrads_dict = {dyad: np.ravel([tetrads + k*Nchoose4 for k in [0,1,2]]) \
                          for dyad, tetrads in proj_tetrads_dict.iteritems()}
     
     # -------------------------------------------- #
@@ -285,17 +277,18 @@ def organize_data_tetrad_logit(D, W, dtcon=None):
         # NOTE: order argument below not strictly needed since W[k] is symmetric
         W_vec[:,k] = W[k].reshape((-1,), order="F")
     
-    W_tilde_1a = calc_W_tilde(W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:], W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:])
-    W_tilde_1b = calc_W_tilde(W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:], W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:])
+    # W_tilde(ij,kl)
+    W_tilde_1 = calc_W_tilde(W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:], W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:])
     
-    W_tilde_2a = calc_W_tilde(W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:], W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:])
-    W_tilde_2b = calc_W_tilde(W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:], W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:])
+    # W_tilde(ij,lk)    
+    W_tilde_2 = calc_W_tilde(W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:], W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:])
     
-    W_tilde_3a = calc_W_tilde(W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:], W_vec[dtcon[0][:,0],:], W_vec[dtcon[0][:,5],:])
-    W_tilde_3b = calc_W_tilde(W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:], W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:])
+    # W_tilde(ik,lj)
+    W_tilde_3 = calc_W_tilde(W_vec[dtcon[0][:,1],:], W_vec[dtcon[0][:,4],:], W_vec[dtcon[0][:,2],:], W_vec[dtcon[0][:,3],:])
+    
     
     # 6 (N choose 4) x K matrix of regressors
-    W_tilde = np.row_stack((W_tilde_1a, W_tilde_1b, W_tilde_2a, W_tilde_2b, W_tilde_3a, W_tilde_3b))
+    W_tilde = np.row_stack((W_tilde_1, W_tilde_2, W_tilde_3))
     
     return [S, W_tilde, tetrad_frac_TL, proj_tetrads_dict]
     

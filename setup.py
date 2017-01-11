@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='netrics',
-      version='0.0.2',
+      version='0.0.3',
       description='Econometric methods for the analysis of networks.',
       long_description=readme(),
       classifiers=[
