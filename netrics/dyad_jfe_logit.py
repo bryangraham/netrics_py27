@@ -256,7 +256,7 @@ def dyad_jfe_logit(D, W, T=None, silent=False, W_names=None, beta_sv=None):
         exp_index = np.exp(R.dot(theta))                             # exponential of logit index (2d array, n x (K+N))
         
         # Compute full (K + N) x (K + N) hessian matrix and extract three sub-blocks
-        H         = -(R.T).dot(R.multiply(exp_index/(1+exp_index)**2))
+        H         = -(R.T).dot(R.multiply(exp_index/(1+exp_index)**2)).toarray()
         H_bb      = H[0:K,0:K]                                         
         H_bA      = H[0:K,K:(K+N)]
         H_AA      = H[K:(K+N),K:(K+N)]
@@ -267,17 +267,17 @@ def dyad_jfe_logit(D, W, T=None, silent=False, W_names=None, beta_sv=None):
         p            = p + p.T                                       
         iV_N         = np.diag(np.sum(p * (1 - p), axis = 1)**(-1))  # inverse of V_N matrix
         Q            = iV_N - np.sum(p * (1 - p), axis = None)**(-1) # Q matrix with zeros on the diagonal
-        
+               
         # Calculate asymptotic variance-covariance matrix of beta_JFE
         # NOTE: vcov_beta_JFE is defined as global so that updates of it can be accessed by in the main
         #       body of the dyad_jfe_logit() function
         
         try:
             # First try computing "exact" hessian
-            info          = -(H_bb - np.dot(np.dot(H_bA,np.linalg.inv(H_AA)),H_bA.T))/n
+            info          = -(H_bb - (H_bA.dot(np.linalg.inv(H_AA)).dot(H_bA.T)))/n
         except:
             # Second use diagonal approximation of H_aa to compute approximate hessian
-            info          = -(H_bb - np.dot(np.dot(H_bA,Q),H_bA.T))/n
+            info          = -(H_bb - (H_bA.dot(Q).dot(H_bA.T)))/n
             
         vcov_beta_JFE = np.linalg.inv(info)
         
